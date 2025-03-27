@@ -1,6 +1,4 @@
 import google.generativeai as genai
-
-# Initialize game state
 game_state = {
     "hireability": 50,
     "progress": [],
@@ -11,17 +9,27 @@ maxSteps = 5
 hiringThreshold = 70
 
 # Difficulty level selection
-difficulty = input("Choose difficulty (beginner, medium, hard): ").lower()
+difficulty = input("Choose difficulty (light, medium, hard, ultra-hard): ").lower()
 
-if difficulty == "beginner":
+if difficulty == "light":
     maxGainPoints = 10
     maxLosingPoints = 2
+    hiringThreshold = 60
 elif difficulty == "medium":
+    maxSteps = 6
     maxGainPoints = 7
     maxLosingPoints = 5
+    hiringThreshold = 70
 elif difficulty == "hard":
+    maxSteps = 8
     maxGainPoints = 5
     maxLosingPoints = 7
+    hiringThreshold = 70
+elif difficulty == "ultra-hard":
+    maxSteps = 10
+    maxGainPoints = 3
+    maxLosingPoints = 9
+    hiringThreshold = 62
 else:
     print("Invalid difficulty, defaulting to medium.")
     maxGainPoints = 7
@@ -68,7 +76,7 @@ def generate_story_step(current_state, maxGainPoints=maxGainPoints, maxLosingPoi
     response = model.generate_content(prompt)
     return response.text.strip()
 
-def interpret_user_input(user_input, current_state, step_story):
+def interpret_user_input(user_input, current_state, step_story, maxGainPoints=maxGainPoints, maxLosingPoints=maxLosingPoints):
     """Interpret custom user input and determine its effect on hireability."""
     prompt = f'''
       Player hireability: {current_state["hireability"]}.
@@ -82,7 +90,7 @@ def interpret_user_input(user_input, current_state, step_story):
         "reasoning": ""
       }}
       
-      - Ensure "effect" reflects the impact each choice has on hireability, ranging FROM -5 to +5.
+      - Ensure "effect" reflects the impact each choice has on hireability, ranging FROM -{maxLosingPoints} to +{maxGainPoints}.
       - Do NOT add extra text — only output the object WITHOUT ANY FORMATTING.
     '''
     response = model.generate_content(prompt)
@@ -156,3 +164,4 @@ while game_state["outcome"] is None:
 conclusion = generate_conclusion(game_state)
 print(conclusion)
 print(f"Game Over! Outcome: {game_state['outcome']}")
+
